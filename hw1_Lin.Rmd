@@ -1,0 +1,76 @@
+---
+title: "DATA608 HW1"
+author: "Bin Lin"
+date: "2017-9-10"
+output: html_document
+---
+
+```{r}
+#install.packages("ggplot2")
+#install.packages("dplyr")
+#install.packages("stringi")
+
+suppressWarnings(library(ggplot2))
+suppressWarnings(library(dplyr))
+
+raw_data <- read.csv("https://raw.githubusercontent.com/blin261/608/master/inc5000_data.csv")
+str(raw_data)
+head(raw_data)
+```
+
+1. Create a graph that shows the distribution of companies in the dataset by State (ie how many are in each state). There are a lot of States, so consider which axis you should use assuming I am using a 'portrait' oriented screen (ie taller than wide).
+```{r}
+state_data <- raw_data %>%
+  group_by(State) %>%
+  summarize(n = n()) %>%
+  arrange(desc(n))
+
+head(state_data)
+```
+
+```{r}
+ggplot(data = state_data, aes(x = reorder(State, n), y =n)) + geom_bar(stat = "identity") + coord_flip() + ggtitle("Fast Growing Companies by States") + labs(x = "States", y = "Number of Fast Growing Companies")
+
+ggsave("Figure1.jpg")
+```
+
+
+
+2. Let's dig in on the State with the 3 rd most companies in the data set. Imagine you work for the state and are interested in how many people are employed by companies in different industries employ. Create a plot of average employment by industry for companies in this state (only use cases with full data (user R's complete.cases() function). Your graph should show how variable the ranges are, and exclude outliers.
+```{r}
+third_state <- state_data[3, 1]
+#typeof(third_state)
+ny_data <- filter(raw_data, State == unlist(third_state))
+ny_data <- ny_data[complete.cases(ny_data), ]
+```
+
+```{r}
+industry_data <- ny_data %>%
+  group_by(Industry) %>%
+  filter(!Employees %in% boxplot.stats(Employees)$out) %>%
+  summarize(average_emp = sum(Employees) / n())
+
+head(industry_data)
+```
+```{r}
+ggplot(data = industry_data, aes(x = reorder(Industry, average_emp), y = average_emp)) + geom_bar(stat = "identity") + coord_flip() + ggtitle("NYS Employees by Industry") + labs(x = "Industry", y = "Number of Employees")
+
+ggsave("Figure2.jpg")
+```
+
+
+
+3. Now imagine you work for an investor and want to see which industries generate the most revenue per employee. Create a chart makes this information clear.
+```{r}
+new_raw_data <- raw_data[complete.cases(raw_data), ]
+revenue_data <- new_raw_data %>%
+  group_by(Industry)%>%
+  summarise(average_rev=(sum(Revenue)/ sum(Employees)))
+head(revenue_data)
+```
+
+```{r}
+ggplot(data = revenue_data, aes(x = reorder(Industry, average_rev), y = average_rev)) + geom_bar(stat = "identity") + coord_flip() + ggtitle("Revenue Per Employee by Industry") + labs(x = "Industry", y = "Revenue Per Employee")
+
+ggsave("Figure3.jpg")
+```
