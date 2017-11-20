@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3 Visualization of Final Project</title>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.11.0/d3.min.js"></script>
+	</head>
+	
+	<style>
+	.line {
+		fill: none;
+		stroke: blue;
+		stroke-width: 2px;
+	}
+	</style>
+	
+	<body>
+		<script type="text/javascript">
+		
+		var margin = {left: 30, right: 30, top: 30, bottom: 30};
+		
+		var out_width = 800;
+		var out_height = 600;
+		
+		var width = 800 - margin.left - margin.right;
+		var height = 600 - margin.top - margin.bottom;
+
+		var x = d3.scaleLinear().range([0, width]);
+		var y = d3.scaleLinear().range([height, 0]);
+
+					
+		var line_data = d3.line()
+			.x(function(d) { return x(d.Year); })
+			.y(function(d) { return y(d.NeonatalMortalityRate); });	
+			
+		var svg = d3.select("body").append("svg")
+			.attr("width", out_width)
+			.attr("height", out_height)
+			.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");		
+			
+		d3.csv("InfantMortality.csv", function(data){
+
+			data.forEach(function (d){
+				d.Year = +d.Year;
+				d.NeonatalMortalityRate = +d.NeonatalMortalityRate;
+			});	
+			
+			data = data.filter(function(row){
+			return row["Region"] == "Americas";
+			})
+	
+			x.domain(d3.extent(data, function(d) { return d.Year; }));
+			y.domain([0, d3.max(data, function(d) { return d.NeonatalMortalityRate; })]);
+
+			svg.append("path")
+				.data([data])
+				.attr("class", "line")
+				.attr("d", line_data);
+	  
+			svg.append("g")
+				.attr("transform", "translate(0," + height + ")")
+				.call(d3.axisBottom(x));
+	  
+			svg.append("g")
+				.call(d3.axisLeft(y));
+		});
+		
+			svg.append("text")
+				.attr("x", out_width / 2)
+				.attr("y", 0)
+				.style("text-anchor", "middle")
+				.text("Infant Mortality at America");
+
+			svg.append("text")
+				.attr("x", out_width / 2)
+				.attr("y",  out_height - margin.bottom)
+				.style("text-anchor", "middle")
+				.text("Years");
+
+  			svg.append("text")
+				.attr("x", -out_height / 2)
+				.attr("y", margin.left)
+				.attr("transform", "rotate(-90)")
+				.style("text-anchor", "middle")
+				.text("Mortality Rate Per 1000 Live Births");
+		</script>
+	</body>
+</html>
