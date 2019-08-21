@@ -1,0 +1,43 @@
+---
+title: "DATA 608 HW3"
+author: "Bin Lin"
+date: "2017-10-8"
+output: html_document
+---
+
+
+```{r}
+df <- read.csv("https://raw.githubusercontent.com/blin261/608/master/Infant_Neonatal_Mortality.csv")
+
+df2 <- read.csv("https://raw.githubusercontent.com/blin261/608/master/Maternal_Mortality.csv")
+
+df4 <- read.csv("https://raw.githubusercontent.com/blin261/608/master/Life_Expectancy.csv")
+
+df4 <- df4[c(1, 2, 3)]
+colnames(df4)[3] <- "Life_Expectancy"
+str(df4)
+
+    
+total <- merge(df, df2, by=c("Region", "Year"))
+total <- merge(total, df4, by=c("Region", "Year"))
+
+
+
+total <- total%>%
+  filter(Year==2015)
+
+total
+#geom_text() 
+
+ggplot(data = total, aes(x = Neonatal_Mortality_Rate, y = Life_Expectancy)) + 
+      geom_point(stat = "identity") +
+      ggtitle("Neonatal Mortality Rate VS. Life Expectancy") + 
+      labs(x = "Neonatal Mortality", y = "Life Expectancy at Birth") +
+      annotate("text", x = 100, y = 100, label = "nihao")
+   
+   
+
+paste("Correlation: ", cor(total$Neonatal_Mortality_Rate, total$Life_Expectancy))
+
+```
+
